@@ -1,17 +1,27 @@
-import { TestBed } from '@angular/core/testing';
+import { HttpClientModule } from '@angular/common/http';
+import { ChangeDetectionStrategy } from '@angular/core';
+import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { By } from '@angular/platform-browser';
+import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { RouterTestingModule } from '@angular/router/testing';
+
 import { AppComponent } from './app.component';
 
 describe('AppComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [
-        RouterTestingModule
+        RouterTestingModule,
+        HttpClientModule,
+        BrowserAnimationsModule
       ],
       declarations: [
         AppComponent
       ],
-    }).compileComponents();
+    }).overrideComponent(AppComponent, {
+      set: { changeDetection: ChangeDetectionStrategy.Default }
+    })
+    .compileComponents();
   });
 
   it('should create the app', () => {
@@ -20,16 +30,42 @@ describe('AppComponent', () => {
     expect(app).toBeTruthy();
   });
 
-  it(`should have as title 'oleksii-aleksandrov-web'`, () => {
-    const fixture = TestBed.createComponent(AppComponent);
-    const app = fixture.componentInstance;
-    expect(app.title).toEqual('oleksii-aleksandrov-web');
-  });
+  describe('Search functionality', () => {
+    let component: AppComponent;
+    let fixture: ComponentFixture<AppComponent>;
 
-  it('should render title', () => {
-    const fixture = TestBed.createComponent(AppComponent);
-    fixture.detectChanges();
-    const compiled = fixture.nativeElement as HTMLElement;
-    expect(compiled.querySelector('.content span')?.textContent).toContain('oleksii-aleksandrov-web app is running!');
-  });
+    beforeEach(async () => {
+      fixture = TestBed.createComponent(AppComponent);
+      component = fixture.componentInstance;
+      fixture.detectChanges();
+    });
+
+    it ('should have input', () => {
+      const input = fixture.debugElement.query(By.css('input[name="users-search"]'));
+      expect(input).toBeTruthy();
+    })
+
+    it ('should call searchUsers on form submit', () => {
+      const form = fixture.debugElement.query(By.css('form.search'));
+      const fnSearchUsers = spyOn(component, 'searchUsers');
+
+      form.triggerEventHandler('submit', null);
+
+      expect(fnSearchUsers).toHaveBeenCalled();
+    })
+
+    it('should show error message on error', () => {
+      let errorMsg = fixture.debugElement.query(By.css('.mat-error'));
+
+      expect(component.error).toBeFalse()
+      expect(errorMsg).toBeNull();
+
+      component.error = true;
+      fixture.detectChanges();
+
+      errorMsg = fixture.debugElement.query(By.css('.mat-error'));
+
+      expect(errorMsg).toBeTruthy();
+    })
+  })
 });
